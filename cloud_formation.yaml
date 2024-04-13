@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Create stack for the Big Data Project"
+
+Resources:
+  KinesisStream:
+    Type: "AWS::Kinesis::Stream"
+    Properties:
+      Name: "news-stream"
+      ShardCount: 2
+
+  NewsStreamLambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "NewsStreamLambdaExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        - "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - "arn:aws:iam::aws:policy/AmazonKinesisFullAccess"
+        - "arn:aws:iam::aws:policy/ComprehendFullAccess"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole"
+
+  S3BucketRaw:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: "stream-raw-210570"
+  
+  S3BucketRedacted:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: "stream-redacted-210570"
+
+  S3BucketAnalytics:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: "stream-analytics-210570"
+
+  # NewsStreamDynamoDBTable:
+  #   Type: "AWS::DynamoDB::Table"
+  #   Properties:
+  #     TableName: "NewsStreamTable"
+  #     AttributeDefinitions:
+  #       - AttributeName: "key"
+  #         AttributeType: "S"
+  #     KeySchema:
+  #       - AttributeName: "key"
+  #         KeyType: "HASH"
+  #     ProvisionedThroughput:
+  #       ReadCapacityUnits: 1
+  #       WriteCapacityUnits: 1
+
+Outputs:
+  NewsStreamLambdaExecutionRole:
+    Description: "ARN of the IAM role for Lambda execution."
+    Value: !GetAtt NewsStreamLambdaExecutionRole.Arn
